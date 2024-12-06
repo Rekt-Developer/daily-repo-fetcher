@@ -1,0 +1,4 @@
+search_query: "<!-- Bangla Font --> language:HTML"
+repos_per_page: 100
+daily_limit: 50
+save_dir: "repo"
