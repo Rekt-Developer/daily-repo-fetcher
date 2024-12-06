@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Repositories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        .date {
+            margin: 20px 0;
+        }
+        .repo {
+            padding: 10px;
+            margin: 10px 0;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .repo a {
+            text-decoration: none;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Saved Repositories</h1>
+    <div id="repos"></div>
+    <script>
+        async function loadRepos() {
+            const response = await fetch("repo");
+            const data = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, "text/html");
+            const dates = Array.from(doc.querySelectorAll("body > *"));
+            const container = document.getElementById("repos");
+            dates.forEach(date => container.appendChild(date));
+        }
+        loadRepos();
+    </script>
+</body>
+</html>
