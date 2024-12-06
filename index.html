@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse repositories fetched and saved daily based on the search query.">
+    <meta property="og:title" content="Saved Repositories - Daily Fetcher">
+    <meta property="og:description" content="View repositories fetched and saved daily.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourwebsite.com/index.html">
+    <meta property="og:image" content="https://yourwebsite.com/og-image.png">
     <title>Saved Repositories</title>
     <style>
         body {
@@ -13,36 +19,49 @@
         }
         h1 {
             text-align: center;
-        }
-        .date {
-            margin: 20px 0;
+            color: #333;
         }
         .repo {
-            padding: 10px;
+            padding: 15px;
             margin: 10px 0;
             background: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .repo a {
             text-decoration: none;
             color: #007bff;
+            font-weight: bold;
+        }
+        .repo p {
+            margin: 5px 0;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <h1>Saved Repositories</h1>
-    <div id="repos"></div>
+    <div id="repo-container"></div>
     <script>
         async function loadRepos() {
             const response = await fetch("repo");
             const data = await response.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(data, "text/html");
-            const dates = Array.from(doc.querySelectorAll("body > *"));
-            const container = document.getElementById("repos");
-            dates.forEach(date => container.appendChild(date));
+            const repoLinks = doc.querySelectorAll("a");
+            const container = document.getElementById("repo-container");
+
+            repoLinks.forEach(link => {
+                const repoDiv = document.createElement("div");
+                repoDiv.className = "repo";
+                repoDiv.innerHTML = `
+                    <a href="${link.href}" target="_blank">${link.textContent}</a>
+                    <p>${link.title}</p>
+                `;
+                container.appendChild(repoDiv);
+            });
         }
+
         loadRepos();
     </script>
 </body>
