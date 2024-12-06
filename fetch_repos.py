@@ -17,7 +17,7 @@ SAVE_DIR = config["save_dir"]
 
 def fetch_repositories(page):
     """Fetch repositories from GitHub."""
-    url = f"https://api.github.com/search/code?q={SEARCH_QUERY}&per_page={REPOS_PER_PAGE}&page={page}"
+    url = f"https://api.github.com/search/repositories?q={SEARCH_QUERY}&per_page={REPOS_PER_PAGE}&page={page}"
     response = requests.get(url, headers=HEADERS)
     if response.status_code == 200:
         return response.json().get("items", [])
@@ -25,19 +25,28 @@ def fetch_repositories(page):
         print(f"Error: {response.status_code}, {response.text}")
         return []
 
+def clone_repo(repo_url, repo_folder):
+    """Clone repository content using git."""
+    if not os.path.exists(repo_folder):
+        os.system(f"git clone {repo_url} {repo_folder}")
+        print(f"Cloned: {repo_url}")
+    else:
+        print(f"Skipped (already exists): {repo_url}")
+
 def save_repo(repo, folder):
     """Save repository content."""
-    repo_name = repo["repository"]["full_name"].replace("/", "_")
+    repo_name = repo["full_name"].replace("/", "_")
     repo_folder = os.path.join(folder, repo_name)
-    if not os.path.exists(repo_folder):
-        os.makedirs(repo_folder)
-        repo_url = repo["html_url"]
-        readme_path = os.path.join(repo_folder, "README.txt")
-        with open(readme_path, "w") as file:
-            file.write(f"Repository: {repo_url}\n")
-        print(f"Saved: {repo_name}")
-    else:
-        print(f"Skipped (already exists): {repo_name}")
+    repo_url = repo["html_url"]
+    clone_repo(repo["clone_url"], repo_folder)
+
+    metadata_path = os.path.join(repo_folder, "README.txt")
+    with open(metadata_path, "w") as file:
+        file.write(f"Repository: {repo_url}\n")
+        file.write(f"Description: {repo['description']}\n")
+        file.write(f"Stars: {repo['stargazers_count']}\n")
+        file.write(f"Language: {repo['language']}\n")
+    print(f"Saved metadata for: {repo_name}")
 
 def main():
     """Main function."""
