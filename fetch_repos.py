@@ -2,6 +2,7 @@ import os
 import requests
 import yaml
 from datetime import datetime
+import time
 
 # Load configuration
 CONFIG_FILE = "config.yml"
@@ -14,6 +15,19 @@ SEARCH_QUERY = config["search_query"]
 REPOS_PER_PAGE = config["repos_per_page"]
 DAILY_LIMIT = config["daily_limit"]
 SAVE_DIR = config["save_dir"]
+
+def get_rate_limit():
+    """Check the remaining API rate limit."""
+    url = "https://api.github.com/rate_limit"
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code == 200:
+        rate_limit = response.json()
+        remaining = rate_limit["rate"]["remaining"]
+        reset_time = rate_limit["rate"]["reset"]
+        return remaining, reset_time
+    else:
+        print(f"Error fetching rate limit: {response.status_code}, {response.text}")
+        return 0, None
 
 def fetch_repositories(page):
     """Fetch repositories from GitHub."""
@@ -56,6 +70,13 @@ def main():
 
     total_fetched = 0
     for page in range(1, (DAILY_LIMIT // REPOS_PER_PAGE) + 2):
+        remaining, reset_time = get_rate_limit()
+
+        if remaining == 0:
+            wait_time = reset_time - int(datetime.now().timestamp())
+            print(f"Rate limit reached. Waiting for {wait_time} seconds...")
+            time.sleep(wait_time + 1)
+
         repos = fetch_repositories(page)
         if not repos:
             break
@@ -65,6 +86,7 @@ def main():
                 break
             save_repo(repo, daily_folder)
             total_fetched += 1
+            time.sleep(2)  # Delay to avoid secondary rate limits
 
     print(f"Total repositories saved: {total_fetched}")
 
